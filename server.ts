@@ -17,12 +17,21 @@ import app from "./artifacts/api-server/src/app";
 // request ever reaches this function, so `express.static` here only
 // matters when this file is run outside Vercel (e.g. local simulation).
 const publicDir = path.join(process.cwd(), "public");
-app.use(express.static(publicDir));
+app.use(express.static(publicDir, { index: false }));
 
-// Any GET request that isn't an API route or a static file is a
-// client-side (SPA) route — serve the app shell and let the frontend
-// router handle it.
-app.get("/*splat", (_req, res) => {
+// A request for a missing file (e.g. an old /assets/index-abc.js that a
+// cached page still references after a redeploy) must 404 — answering it
+// with index.html makes the browser fail with "'text/html' is not a valid
+// JavaScript MIME type" and the page renders blank.
+app.get(/^\/(assets\/.*|.*\.[a-z0-9]{2,5})$/i, (_req, res) => {
+  res.status(404).set("Cache-Control", "no-store").send("Not found");
+});
+
+// Any other GET (including "/") is a client-side (SPA) route — serve the
+// app shell. The shell is never cached so a redeploy is picked up on the
+// next visit.
+app.get(["/", "/*splat"], (_req, res) => {
+  res.set("Cache-Control", "no-cache, no-store, must-revalidate");
   res.sendFile(path.join(publicDir, "index.html"));
 });
 

@@ -16,6 +16,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // If this page is a stale copy from before a redeploy, its JS/CSS files
+      // no longer exist. Reload once to fetch the current version instead of
+      // showing a blank screen.
+      (function () {
+        function recover(e) {
+          var t = e && e.target;
+          var src = t && (t.src || t.href);
+          if (!src || src.indexOf("/assets/") === -1) return;
+          try {
+            if (sessionStorage.getItem("asset-reload")) return;
+            sessionStorage.setItem("asset-reload", "1");
+          } catch (_) {}
+          location.reload();
+        }
+        window.addEventListener("error", recover, true);
+        window.addEventListener("vite:preloadError", function () { recover({ target: { src: "/assets/" } }); });
+        window.addEventListener("load", function () {
+          setTimeout(function () { try { sessionStorage.removeItem("asset-reload"); } catch (_) {} }, 5000);
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
