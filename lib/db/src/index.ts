@@ -11,13 +11,15 @@ const { Pool } = pg;
 // is only the name of the Replit secret holding the same value — Replit's
 // own `DATABASE_URL` is a separate, internal-only dev database and must not
 // be reused here).
-const connectionString = process.env.DATABASE_URL;
+const configuredUrl = process.env.DATABASE_URL?.trim();
 
-if (!connectionString) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
+// Don't crash the whole server when DATABASE_URL is missing — log it, let
+// non-database routes keep working, and let /api/health/db report the problem.
+export const databaseUrlMissing = !configuredUrl;
+if (databaseUrlMissing) {
+  console.error("DATABASE_URL is not set — database routes will fail until it is.");
 }
+const connectionString = configuredUrl || "postgresql://missing-database-url.invalid:5432/none";
 
 // Vercel (and other serverless platforms) run this module fresh per
 // invocation with no persistent process, so the pool must stay small and
