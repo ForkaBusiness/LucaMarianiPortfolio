@@ -1,18 +1,14 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { useMedia, optimizeImage } from "@/lib/media";
 
-const IMAGES = [
-  { src: "https://res.cloudinary.com/dgqwzy1a0/image/upload/f_auto,q_auto,w_1800/v1779165049/AnnaMariaIsland-154_orakkw.jpg", alt: "Lord Huron at The Salt Shed" },
-  { src: "https://res.cloudinary.com/dgqwzy1a0/image/upload/f_auto,q_auto,w_1800/v1779164977/Night1RCS-09_wuu7ay.jpg", alt: "Red Clay Strays live concert" },
-  { src: "https://res.cloudinary.com/dgqwzy1a0/image/upload/f_auto,q_auto,w_1800/v1779165080/DSC00952_nugqp9.jpg", alt: "Event photography Chicago" },
-  { src: "https://res.cloudinary.com/dgqwzy1a0/image/upload/f_auto,q_auto,w_1800/v1779165047/AnnaMariaIsland-165_jfisyj.jpg", alt: "Lord Huron stage performance" },
-  { src: "https://res.cloudinary.com/dgqwzy1a0/image/upload/f_auto,q_auto,w_1800/v1779164975/Night2RCS-59_usmzzf.jpg", alt: "Red Clay Strays concert photography" },
-  { src: "https://res.cloudinary.com/dgqwzy1a0/image/upload/f_auto,q_auto,w_1800/v1779165040/AnnaMariaIsland-149_x04adk.jpg", alt: "Lord Huron Salt Shed Chicago" },
-  { src: "https://res.cloudinary.com/dgqwzy1a0/image/upload/f_auto,q_auto,w_1800/v1779164965/Night1RCS-33_df5kvd.jpg", alt: "Red Clay Strays night one" },
-  { src: "https://res.cloudinary.com/dgqwzy1a0/image/upload/f_auto,q_auto,w_1800/v1779165079/DSC01061_irfldl.jpg", alt: "Live event coverage" },
-];
 
 export default function GallerySection() {
+  // Photos marked "Homepage gallery" in the portal (first 8).
+  const { data } = useMedia("photo", { featured: true });
+  const IMAGES = (data ?? []).slice(0, 8).map((m) => ({ src: optimizeImage(m.src, 1000), alt: m.title }));
+  if (data && IMAGES.length === 0) return null;
+
   return (
     <section className="w-full bg-black py-24 border-t border-white/10" id="photography">
       <div className="max-w-[1600px] mx-auto px-4 md:px-8">

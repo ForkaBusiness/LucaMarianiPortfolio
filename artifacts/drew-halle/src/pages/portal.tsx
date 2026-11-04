@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import MediaManager from "@/components/portal/media-manager";
+import { parseYouTube } from "@/lib/media";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -108,9 +110,9 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-// ── Portal dashboard ─────────────────────────────────────────────────────────
+// ── Homepage "Recent Work" carousel manager ─────────────────────────────────
 
-function PortalDashboard({ onLogout }: { onLogout: () => void }) {
+function RecentWorkManager() {
   const [items, setItems] = useState<RecentWorkItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -131,11 +133,6 @@ function PortalDashboard({ onLogout }: { onLogout: () => void }) {
     fetchItems();
   }, []);
 
-  async function handleLogout() {
-    await apiFetch("/portal/logout", { method: "POST" });
-    onLogout();
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -146,9 +143,21 @@ function PortalDashboard({ onLogout }: { onLogout: () => void }) {
       : "/portal/recent-work";
     const method = editingId !== null ? "PATCH" : "POST";
 
+    // Accept a full <iframe> embed code / watch link for videos, store a clean embed URL.
+    let embedUrl = form.embedUrl.trim();
+    if (form.type === "video") {
+      const parsed = parseYouTube(embedUrl);
+      if (!parsed) {
+        setSubmitting(false);
+        setFormStatus({ type: "error", msg: "COULDN'T FIND A YOUTUBE VIDEO IN THAT LINK" });
+        return;
+      }
+      embedUrl = `https://www.youtube.com/embed/${parsed.id}`;
+    }
+
     const { ok, data } = await apiFetch(url, {
       method,
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, embedUrl }),
     });
 
     setSubmitting(false);
@@ -204,23 +213,8 @@ function PortalDashboard({ onLogout }: { onLogout: () => void }) {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Top bar */}
-      <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase">
-            LUCA FILMS · PORTAL
-          </span>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="font-mono text-[9px] tracking-widest text-white/40 uppercase hover:text-white transition-colors"
-        >
-          LOGOUT
-        </button>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-6 py-12 space-y-16">
+    <div>
+      <div className="space-y-16">
         {/* Upload / Edit form */}
         <section>
           <div className="flex items-center justify-between mb-8">
@@ -264,10 +258,10 @@ function PortalDashboard({ onLogout }: { onLogout: () => void }) {
             {/* Embed URL */}
             <div>
               <label className="block font-mono text-[9px] tracking-widest text-white/40 uppercase mb-2">
-                EMBED URL <span className="text-white/20">— YouTube embed link or image URL</span>
+                LINK <span className="text-white/20">— YouTube embed code / link, or image URL</span>
               </label>
               <input
-                type="url"
+                type="text"
                 value={form.embedUrl}
                 onChange={(e) => setForm({ ...form, embedUrl: e.target.value })}
                 required
@@ -455,6 +449,79 @@ function PortalDashboard({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
         </section>
+      </div>
+    </div>
+  );
+}
+
+// ── Portal dashboard (tabs) ──────────────────────────────────────────────────
+
+type Tab = "videos" | "photos" | "recent";
+const TABS: { key: Tab; label: string; hint: string }[] = [
+  { key: "videos", label: "VIDEOS", hint: "Videography page" },
+  { key: "photos", label: "PHOTOS", hint: "Photography page + homepage gallery" },
+  { key: "recent", label: "RECENT WORK", hint: "Homepage carousel" },
+];
+
+function PortalDashboard({ onLogout }: { onLogout: () => void }) {
+  const [tab, setTab] = useState<Tab>(() => {
+    try {
+      const saved = localStorage.getItem("portal_tab") as Tab | null;
+      return saved && TABS.some((t) => t.key === saved) ? saved : "videos";
+    } catch {
+      return "videos";
+    }
+  });
+
+  function pick(t: Tab) {
+    setTab(t);
+    try {
+      localStorage.setItem("portal_tab", t);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function handleLogout() {
+    await apiFetch("/portal/logout", { method: "POST" });
+    onLogout();
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <span className="font-mono text-[10px] tracking-widest text-white/30 uppercase">LUCA FILMS · PORTAL</span>
+        <div className="flex items-center gap-6">
+          <a href={`${BASE}/`} target="_blank" rel="noreferrer" className="font-mono text-[9px] tracking-widest text-white/40 uppercase hover:text-white transition-colors">
+            VIEW SITE ↗
+          </a>
+          <button onClick={handleLogout} className="font-mono text-[9px] tracking-widest text-white/40 uppercase hover:text-white transition-colors">
+            LOGOUT
+          </button>
+        </div>
+      </div>
+
+      <div className="border-b border-white/10 px-6">
+        <div className="max-w-4xl mx-auto flex gap-0 overflow-x-auto">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => pick(t.key)}
+              className={`px-5 py-4 text-left border-b-2 transition-colors flex-shrink-0 ${
+                tab === t.key ? "border-white text-white" : "border-transparent text-white/40 hover:text-white/70"
+              }`}
+            >
+              <span className="block font-mono text-[10px] tracking-widest uppercase">{t.label}</span>
+              <span className="block font-mono text-[8px] tracking-widest uppercase text-white/30 mt-1">{t.hint}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        {tab === "videos" && <MediaManager kind="video" />}
+        {tab === "photos" && <MediaManager kind="photo" />}
+        {tab === "recent" && <RecentWorkManager />}
       </div>
     </div>
   );

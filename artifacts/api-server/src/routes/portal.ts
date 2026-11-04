@@ -1,6 +1,17 @@
 import { Router, type Request } from "express";
-import { db, recentWorkTable, insertRecentWorkSchema, updateRecentWorkSchema, loginAttemptsTable } from "@workspace/db";
-import { eq, desc, sql } from "drizzle-orm";
+import {
+  db,
+  recentWorkTable,
+  insertRecentWorkSchema,
+  updateRecentWorkSchema,
+  loginAttemptsTable,
+  mediaTable,
+  updateMediaSchema,
+  isValidCategory,
+  insertMediaListSchema,
+  reorderMediaSchema,
+} from "@workspace/db";
+import { eq, desc, asc, sql, and, inArray } from "drizzle-orm";
 
 const router = Router();
 
@@ -259,6 +270,143 @@ router.delete("/portal/recent-work/:id", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Portal: failed to delete recent work");
     res.status(500).json({ error: "Failed to delete entry" });
+  }
+});
+
+// ── Media (videos + photos) ──────────────────────────────────────────────────
+
+// GET /api/portal/media — everything, including hidden items
+router.get("/portal/media", async (req, res) => {
+  try {
+    const items = await db
+      .select()
+      .from(mediaTable)
+      .orderBy(asc(mediaTable.kind), asc(mediaTable.category), asc(mediaTable.position), asc(mediaTable.id));
+    res.json(items);
+  } catch (err) {
+    req.log.error({ err }, "Portal: failed to fetch media");
+    res.status(500).json({ error: "Failed to fetch media" });
+  }
+});
+
+// POST /api/portal/media — add one item ({...}) or many ({ items: [...] }).
+// New items go to the TOP of their category so the latest work shows first.
+router.post("/portal/media", async (req, res) => {
+  const raw = Array.isArray(req.body?.items) ? req.body.items : [req.body];
+  if (raw.length === 0 || raw.length > 100) {
+    res.status(400).json({ error: "Send between 1 and 100 items" });
+    return;
+  }
+
+  const parsed = insertMediaListSchema.safeParse(raw);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid input", details: parsed.error.issues });
+    return;
+  }
+  const bad = parsed.data.find((m) => !isValidCategory(m.kind, m.category));
+  if (bad) {
+    res.status(400).json({ error: `Unknown ${bad.kind} category "${bad.category}"` });
+    return;
+  }
+
+  try {
+    const created = await db.transaction(async (tx) => {
+      const out = [];
+      // Insert in reverse so the first item in the list ends up on top.
+      for (const item of [...parsed.data].reverse()) {
+        const [{ min }] = await tx
+          .select({ min: sql<number>`coalesce(min(${mediaTable.position}), 0)` })
+          .from(mediaTable)
+          .where(and(eq(mediaTable.kind, item.kind), eq(mediaTable.category, item.category)));
+        const [row] = await tx
+          .insert(mediaTable)
+          .values({ ...item, artist: item.artist || null, position: Number(min) - 1 })
+          .returning();
+        out.push(row);
+      }
+      return out.reverse();
+    });
+    res.status(201).json(Array.isArray(req.body?.items) ? created : created[0]);
+  } catch (err) {
+    req.log.error({ err }, "Portal: failed to create media");
+    res.status(500).json({ error: "Failed to save" });
+  }
+});
+
+// POST /api/portal/media/reorder — { ids: [3, 1, 2] } sets that order
+router.post("/portal/media/reorder", async (req, res) => {
+  const parsed = reorderMediaSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid input" });
+    return;
+  }
+  const { ids } = parsed.data;
+  try {
+    await db.transaction(async (tx) => {
+      const existing = await tx.select({ id: mediaTable.id }).from(mediaTable).where(inArray(mediaTable.id, ids));
+      if (existing.length !== new Set(ids).size) throw new Error("unknown id");
+      for (let i = 0; i < ids.length; i++) {
+        await tx.update(mediaTable).set({ position: i }).where(eq(mediaTable.id, ids[i]));
+      }
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Portal: failed to reorder media");
+    res.status(400).json({ error: "Failed to reorder" });
+  }
+});
+
+// PATCH /api/portal/media/:id
+router.patch("/portal/media/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const parsed = updateMediaSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid input", details: parsed.error.issues });
+    return;
+  }
+
+  try {
+    const [current] = await db.select().from(mediaTable).where(eq(mediaTable.id, id));
+    if (!current) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    const next = { ...current, ...parsed.data };
+    if (!isValidCategory(next.kind, next.category)) {
+      res.status(400).json({ error: `Unknown ${next.kind} category "${next.category}"` });
+      return;
+    }
+    const update = { ...parsed.data };
+    if ("artist" in update) update.artist = update.artist || null;
+    const [item] = await db.update(mediaTable).set(update).where(eq(mediaTable.id, id)).returning();
+    res.json(item);
+  } catch (err) {
+    req.log.error({ err }, "Portal: failed to update media");
+    res.status(500).json({ error: "Failed to update" });
+  }
+});
+
+// DELETE /api/portal/media/:id
+router.delete("/portal/media/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  try {
+    const [item] = await db.delete(mediaTable).where(eq(mediaTable.id, id)).returning();
+    if (!item) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Portal: failed to delete media");
+    res.status(500).json({ error: "Failed to delete" });
   }
 });
 

@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
+import { useMedia, VIDEO_CATEGORIES, type MediaItem } from "@/lib/media";
 
 type Video = {
   id: string;
@@ -23,149 +24,18 @@ type Category = {
 const ALLOW_STD = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
 const REF_STD = "strict-origin-when-cross-origin";
 
-const CATEGORIES: Category[] = [
-  {
-    key: "music",
-    label: "MUSIC",
-    sub: "Concert films · Live performances · Artist narratives",
-    videos: [
-      {
-        id: "m2",
-        title: "Two Door Cinema Club",
-        src: "https://www.youtube-nocookie.com/embed/omdgY4VaRPE?si=CTGxh2KKS_bEn8uM&controls=0",
-        aspect: "16/9",
-        allow: ALLOW_STD,
-        referrerPolicy: REF_STD,
-      },
-      {
-        id: "m1",
-        title: "Red Clay Strays",
-        src: "https://www.youtube.com/embed/r_59JjsZaz4?controls=0&modestbranding=1&rel=0&playsinline=1",
-        aspect: "9/16",
-        allow: ALLOW_STD,
-      },
-    ],
-  },
-  {
-    key: "sports",
-    label: "SPORTS",
-    sub: "Athletic campaigns · Event coverage · Brand films",
-    videos: [
-      {
-        id: "s4",
-        title: "Home of the Titans",
-        src: "https://www.youtube-nocookie.com/embed/1WD9J_-PJlQ?si=yD2xY_4aMNWlgbiV&controls=0",
-        aspect: "16/9",
-        allow: ALLOW_STD,
-        referrerPolicy: REF_STD,
-      },
-      {
-        id: "s1",
-        title: "Roll South",
-        src: "https://www.youtube-nocookie.com/embed/XG2WVE4Y0cg?si=u48GD5YMB6n6GxiH&controls=0",
-        aspect: "16/9",
-        allow: ALLOW_STD,
-        referrerPolicy: REF_STD,
-      },
-      {
-        id: "s2",
-        title: "Glenbrook South Football",
-        src: "https://www.youtube-nocookie.com/embed/u4KPLhTTo3g?si=V7RTadZUw6uKyaJp&controls=0",
-        aspect: "16/9",
-        allow: ALLOW_STD,
-        referrerPolicy: REF_STD,
-      },
-      {
-        id: "s3",
-        title: "Glenbrook South Hockey",
-        src: "https://www.youtube-nocookie.com/embed/vSOkSNK1-E4?si=QA3ee9odZ2WRs7Jj&controls=0",
-        aspect: "16/9",
-        allow: ALLOW_STD,
-        referrerPolicy: REF_STD,
-      },
-    ],
-  },
-  {
-    key: "snow",
-    label: "SNOW",
-    sub: "Alpine · Winter landscapes · Outdoor adventure",
-    videos: [
-      {
-        id: "sn1",
-        title: "Crystal Ridge Park Follow Cam",
-        src: "https://www.youtube.com/embed/VwkKoKVDU3g?modestbranding=1&rel=0&playsinline=1&controls=0",
-        aspect: "9/16",
-        allow: ALLOW_STD,
-      },
-      {
-        id: "sn2",
-        title: "Alpine Valley Park Follow Cam #1",
-        src: "https://www.youtube.com/embed/o5AmOaYRXjw?modestbranding=1&rel=0&playsinline=1&controls=0",
-        aspect: "9/16",
-        allow: ALLOW_STD,
-      },
-      {
-        id: "sn3",
-        title: "Alpine Valley Park Follow Cam #3",
-        src: "https://www.youtube.com/embed/p-lvvaiAmOQ?modestbranding=1&rel=0&playsinline=1&controls=0",
-        aspect: "9/16",
-        allow: ALLOW_STD,
-      },
-      {
-        id: "sn4",
-        title: "Alpine Valley Park Follow Cam #2",
-        src: "https://www.youtube.com/embed/_H6hO0xat2s?modestbranding=1&rel=0&playsinline=1&controls=0",
-        aspect: "9/16",
-        allow: ALLOW_STD,
-      },
-    ],
-  },
-  {
-    key: "hospitality",
-    label: "HOSPITALITY\n& EVENTS",
-    sub: "Venues · Brand showcases · Weddings & celebrations",
-    videos: [
-      {
-        id: "h1",
-        title: "Ovvio",
-        src: "https://www.youtube-nocookie.com/embed/vXhoXWMxVr0?si=hyk8Th8K5eyMKj-_&controls=0",
-        aspect: "16/9",
-        allow: ALLOW_STD,
-        referrerPolicy: REF_STD,
-      },
-      {
-        id: "h2",
-        title: "Ovvio",
-        src: "https://www.youtube-nocookie.com/embed/STKgmNhSFP0?si=CTtxMoX7NUXfw3bd&controls=0",
-        aspect: "16/9",
-        allow: ALLOW_STD,
-        referrerPolicy: REF_STD,
-      },
-      {
-        id: "h3",
-        title: "Alpine Valley Resorts Wedding",
-        src: "https://www.youtube-nocookie.com/embed/ROQukR7EJgA?si=yfDztzVF7diBHTo4&controls=0",
-        aspect: "16/9",
-        allow: ALLOW_STD,
-        referrerPolicy: REF_STD,
-      },
-      {
-        id: "h4",
-        title: "Lake Forest Chiro",
-        src: "https://www.youtube.com/embed/xlhhCYGaEqo?si=3GockmbNT9IHYxb0&controls=0&modestbranding=1&rel=0&playsinline=1",
-        aspect: "9/16",
-        allow: ALLOW_STD,
-      },
-      {
-        id: "h6",
-        title: "Backyard Breaks Interview",
-        src: "https://www.youtube.com/embed/J_fgrEz_QOg?modestbranding=1&rel=0&playsinline=1&controls=0",
-        aspect: "9/16",
-        allow: ALLOW_STD,
-      },
-    ],
-  },
-];
+// Videos come from the database (managed in /portal) — see lib/media.ts.
+function toVideo(m: MediaItem): Video {
+  const nocookie = m.src.includes("youtube-nocookie.com");
+  return {
+    id: String(m.id),
+    title: m.title,
+    src: m.src,
+    aspect: m.aspect,
+    allow: ALLOW_STD,
+    referrerPolicy: nocookie ? REF_STD : undefined,
+  };
+}
 
 // ── Cinema Player ──────────────────────────────────────────────────────────────
 
@@ -338,7 +208,7 @@ function VideoCard({ video, onPlay }: { video: Video; onPlay: (v: Video) => void
 
 // ── Placeholder ───────────────────────────────────────────────────────────────
 
-function PlaceholderCard() {
+function PlaceholderCard({ loading = false }: { loading?: boolean }) {
   return (
     <div className="relative aspect-video bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center gap-3">
       <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center">
@@ -346,7 +216,7 @@ function PlaceholderCard() {
           <path d="M8 5v14l11-7z" />
         </svg>
       </div>
-      <p className="font-mono text-[9px] tracking-widest text-white/20 uppercase">VIDEO COMING SOON</p>
+      <p className="font-mono text-[9px] tracking-widest text-white/20 uppercase">{loading ? "LOADING…" : "VIDEO COMING SOON"}</p>
     </div>
   );
 }
@@ -356,6 +226,13 @@ function PlaceholderCard() {
 export default function Videography() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeVideo, setActiveVideo] = useState<Video | null>(null);
+
+  const { data, isLoading, isError } = useMedia("video");
+
+  const CATEGORIES: Category[] = VIDEO_CATEGORIES.map((c) => ({
+    ...c,
+    videos: (data ?? []).filter((m) => m.category === c.key).map(toVideo),
+  })).filter((c) => isLoading || c.videos.length > 0);
 
   const filtered = activeCategory
     ? CATEGORIES.filter((c) => c.key === activeCategory)
@@ -421,6 +298,11 @@ export default function Videography() {
 
       {/* Category sections */}
       <main className="max-w-[1600px] mx-auto px-4 md:px-8 py-16 space-y-24">
+        {isError && (
+          <p className="font-mono text-[10px] tracking-widest text-white/40 uppercase">
+            COULDN'T LOAD VIDEOS — REFRESH TO TRY AGAIN
+          </p>
+        )}
         {filtered.map((cat, catIdx) => (
           <motion.section
             key={cat.key}
@@ -453,7 +335,7 @@ export default function Videography() {
                 <VideoCard key={v.id} video={v} onPlay={setActiveVideo} />
               ))}
               {cat.videos.length === 0 &&
-                [0, 1, 2].map((i) => <PlaceholderCard key={i} />)}
+                [0, 1, 2].map((i) => <PlaceholderCard key={i} loading={isLoading} />)}
             </div>
           </motion.section>
         ))}
