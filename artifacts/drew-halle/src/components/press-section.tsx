@@ -9,11 +9,15 @@ const AWARDS = [
 const CLIENT_GROUPS = [
   {
     label: "MUSIC",
-    clients: ["LORD HURON", "INDIGO DE SOUZA", "THE RED CLAY STRAYS", "THE SALT SHED (CHICAGO)"]
+    clients: ["LORD HURON", "INDIGO DE SOUZA", "THE RED CLAY STRAYS", "THE SALT SHED (CHICAGO)", "TWO DOOR CINEMA CLUB"]
   },
   {
     label: "SPORTS",
-    clients: ["ALPINE VALLEY RESORT", "VAIL RESORTS", "NSE ATHLETICS"]
+    clients: ["ALPINE VALLEY RESORT", "VAIL RESORTS", "NSE ATHLETICS", "MAX HOLLOWAY"]
+  },
+  {
+    label: "MEDIA",
+    clients: ["BACKYARD BREAKS", "MAD ENTERPRISES"]
   },
   {
     label: "HOSPITALITY",
