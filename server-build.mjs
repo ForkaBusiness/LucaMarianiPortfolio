@@ -59,6 +59,11 @@ async function buildServer() {
     // otherwise unsafe to statically bundle. server.ts pulls in the same
     // Express app as that package, so the same set applies here.
     external: [
+      // Keep express as a real import in server.js: Vercel's Express
+      // detection scans the entrypoint for an `express` import and fails
+      // the build ("No entrypoint found which imports express") if it's
+      // been bundled inline. It's a root dependency, so it resolves at runtime.
+      "express",
       "*.node",
       "sharp",
       "better-sqlite3",
