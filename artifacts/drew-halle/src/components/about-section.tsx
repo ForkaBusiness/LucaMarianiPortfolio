@@ -93,6 +93,8 @@ export default function AboutSection() {
               {/* Photo */}
               <div className="border border-white/20 overflow-hidden">
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src="/emmy.jpg"
                   alt="Luca Mariani at the Chicago/Midwest Emmy Awards"
                   className="w-full object-cover md:grayscale md:hover:grayscale-0 transition-all duration-700"

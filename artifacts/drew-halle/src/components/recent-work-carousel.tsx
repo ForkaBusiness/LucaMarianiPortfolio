@@ -32,7 +32,7 @@ function WorkCard({ item }: { item: RecentWorkItem }) {
         {item.type === "video" ? (
           isPlaying ? (
             <iframe
-              src={`${item.embedUrl}?autoplay=1&mute=0&controls=1`}
+              src={`${item.embedUrl}${item.embedUrl.includes("?") ? "&" : "?"}autoplay=1&mute=0&controls=1&cc_load_policy=0&iv_load_policy=3`}
               className="absolute inset-0 w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

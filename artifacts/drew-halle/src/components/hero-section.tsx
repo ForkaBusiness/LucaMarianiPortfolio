@@ -118,7 +118,7 @@ export default function HeroSection() {
             transition={{ duration: 1.4, ease: "easeInOut" }}
           >
             <div
-              className="grain-move absolute inset-0 pointer-events-none opacity-35 mix-blend-screen"
+              className="grain-move absolute inset-0 pointer-events-none opacity-35"
               style={{ backgroundImage: NOISE_SVG, backgroundSize: "200px 200px" }}
             />
             <div className="absolute top-20 left-4 font-mono text-[10px] text-white/40 tracking-widest uppercase">01 · INTRO</div>
@@ -187,7 +187,7 @@ export default function HeroSection() {
                 ref={iframeRef}
                 width="560"
                 height="315"
-                src="https://www.youtube.com/embed/EWRG-pAbhFY?si=cKkJ0s-bkFqt9zCJ&controls=0&autoplay=1&mute=1&enablejsapi=1&playsinline=1&loop=1&playlist=EWRG-pAbhFY"
+                src="https://www.youtube.com/embed/EWRG-pAbhFY?si=cKkJ0s-bkFqt9zCJ&controls=0&autoplay=1&mute=1&enablejsapi=1&playsinline=1&loop=1&playlist=EWRG-pAbhFY&cc_load_policy=0&iv_load_policy=3"
                 title="YouTube video player"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -207,7 +207,7 @@ export default function HeroSection() {
                 ref={mobileIframeRef}
                 width="560"
                 height="315"
-                src="https://www.youtube.com/embed/EWRG-pAbhFY?controls=0&autoplay=0&mute=0&enablejsapi=1&playsinline=1&loop=1&playlist=EWRG-pAbhFY"
+                src="https://www.youtube.com/embed/EWRG-pAbhFY?controls=0&autoplay=0&mute=0&enablejsapi=1&playsinline=1&loop=1&playlist=EWRG-pAbhFY&cc_load_policy=0&iv_load_policy=3"
                 title="YouTube video player"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -229,7 +229,7 @@ export default function HeroSection() {
                     className="absolute inset-0 bg-black flex flex-col items-center justify-center"
                   >
                     <div
-                      className="grain-move absolute inset-0 pointer-events-none opacity-20 mix-blend-screen"
+                      className="grain-move absolute inset-0 pointer-events-none opacity-20"
                       style={{ backgroundImage: NOISE_SVG, backgroundSize: "200px 200px" }}
                     />
                     <p className="font-mono text-[10px] tracking-widest text-white/40 uppercase mb-10 z-10">

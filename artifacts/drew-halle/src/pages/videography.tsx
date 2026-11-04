@@ -163,13 +163,6 @@ const CATEGORIES: Category[] = [
         aspect: "9/16",
         allow: ALLOW_STD,
       },
-      {
-        id: "h5",
-        title: "Interviews",
-        src: "https://www.youtube.com/embed/-xQ_rZ58JPU?modestbranding=1&rel=0&playsinline=1&controls=0",
-        aspect: "9/16",
-        allow: ALLOW_STD,
-      },
     ],
   },
 ];
@@ -185,6 +178,8 @@ function CinemaPlayer({ video, onClose }: { video: Video; onClose: () => void })
     let s = video.src;
     if (!s.includes("enablejsapi")) s += "&enablejsapi=1";
     if (!s.includes("autoplay")) s += "&autoplay=1";
+    // Hide YouTube captions/annotations so videos play clean
+    if (!s.includes("cc_load_policy")) s += "&cc_load_policy=0&iv_load_policy=3";
     return s;
   })();
 

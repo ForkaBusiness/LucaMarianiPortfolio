@@ -59,6 +59,8 @@ export default function WorkSection() {
                     {card.id}
                   </div>
                   <img
+                    loading="lazy"
+                    decoding="async"
                     src={card.image}
                     alt={card.category}
                     className="w-full h-full object-cover opacity-100 md:grayscale md:opacity-80 md:group-hover:grayscale-0 md:group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
