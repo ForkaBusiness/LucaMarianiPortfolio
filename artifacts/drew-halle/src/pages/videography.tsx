@@ -30,6 +30,14 @@ const CATEGORIES: Category[] = [
     sub: "Concert films · Live performances · Artist narratives",
     videos: [
       {
+        id: "m2",
+        title: "Two Door Cinema Club",
+        src: "https://www.youtube-nocookie.com/embed/omdgY4VaRPE?si=CTGxh2KKS_bEn8uM&controls=0",
+        aspect: "16/9",
+        allow: ALLOW_STD,
+        referrerPolicy: REF_STD,
+      },
+      {
         id: "m1",
         title: "Red Clay Strays",
         src: "https://www.youtube.com/embed/r_59JjsZaz4?controls=0&modestbranding=1&rel=0&playsinline=1",
@@ -43,6 +51,14 @@ const CATEGORIES: Category[] = [
     label: "SPORTS",
     sub: "Athletic campaigns · Event coverage · Brand films",
     videos: [
+      {
+        id: "s4",
+        title: "Home of the Titans",
+        src: "https://www.youtube-nocookie.com/embed/1WD9J_-PJlQ?si=yD2xY_4aMNWlgbiV&controls=0",
+        aspect: "16/9",
+        allow: ALLOW_STD,
+        referrerPolicy: REF_STD,
+      },
       {
         id: "s1",
         title: "Roll South",
@@ -137,6 +153,13 @@ const CATEGORIES: Category[] = [
         id: "h4",
         title: "Lake Forest Chiro",
         src: "https://www.youtube.com/embed/xlhhCYGaEqo?si=3GockmbNT9IHYxb0&controls=0&modestbranding=1&rel=0&playsinline=1",
+        aspect: "9/16",
+        allow: ALLOW_STD,
+      },
+      {
+        id: "h6",
+        title: "Backyard Breaks Interview",
+        src: "https://www.youtube.com/embed/J_fgrEz_QOg?modestbranding=1&rel=0&playsinline=1&controls=0",
         aspect: "9/16",
         allow: ALLOW_STD,
       },
